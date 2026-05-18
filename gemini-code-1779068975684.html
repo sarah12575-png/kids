@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>전국 어린이 놀이시설 안내</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .facility-card { border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+        .facility-name { font-weight: bold; color: #2c3e50; font-size: 1.2em; }
+        .loading { color: #3498db; }
+    </style>
+</head>
+<body>
+    <h1>🛝 전국 어린이 놀이시설 안내</h1>
+    <div id="status">데이터를 불러오는 중...</div>
+    <div id="list"></div>
+
+    <script>
+        async function fetchFacilities() {
+            try {
+                // Vercel 서버리스 함수 호출
+                const response = await fetch('/api/attractions?pageNo=1&numOfRows=20');
+                const data = await response.json();
+                
+                const listDiv = document.getElementById('list');
+                const statusDiv = document.getElementById('status');
+                
+                // API 구조에 맞춰 데이터 파싱 (아이템 경로는 API 결과 구조에 따라 조정 필요)
+                const facilities = data.items || []; 
+                
+                if (facilities.length === 0) {
+                    statusDiv.innerText = "조회된 시설이 없습니다.";
+                    return;
+                }
+
+                statusDiv.style.display = 'none';
+                listDiv.innerHTML = facilities.map(item => `
+                    <div class="facility-card">
+                        <div class="facility-name">${item.pfctNm || '이름 없음'}</div>
+                        <p>📍 주소: ${item.roadNmAddr || item.lotnoAddr || '주소 정보 없음'}</p>
+                        <small>우편번호: ${item.zip || '-'}</small>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                document.getElementById('status').innerText = "데이터 로딩 실패: " + error.message;
+            }
+        }
+
+        fetchFacilities();
+    </script>
+</body>
+</html>
